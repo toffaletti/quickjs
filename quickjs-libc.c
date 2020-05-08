@@ -47,6 +47,10 @@
 #include <sys/wait.h>
 #if defined(__APPLE__)
 typedef sig_t sighandler_t;
+// environ on macOS cannot be used by library code
+// call _NSGetEnviron() instead
+#include <crt_externs.h> // for _NSGetEnviron()
+#define environ *_NSGetEnviron()
 #endif
 #endif
 
@@ -2389,7 +2393,7 @@ static char **build_envp(JSContext *ctx, JSValueConst obj)
 /* execvpe is not available on non GNU systems */
 static int my_execvpe(const char *filename, char **argv, char **envp)
 {
-    char *path, *p, *p_next, *p1;
+    const char * path, *p, *p_next, *p1;
     char buf[PATH_MAX];
     size_t filename_len, path_len;
     BOOL eacces_error;
